@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>VGG</title>
+    <style>
+      body { margin: 0; background-color: gray; }
+      canvas.emscripten {
+        position: absolute; /* important! */
+        top: 0px;
+        left: 0px;
+        margin: 0px;
+        border: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        display: block;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <input type="file" id="fileInput" accept=".vgg,.sketch" style="display:none" onchange="openFile(this.files)" />
+    <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="openImage(this.files)" />
+    <input type="file" id="fontInput" accept=".ttf,.ttc,.otf" style="display:none" onchange="openFont(this.files)" />
+    <script type="text/javascript" src="https://verygoodgraphics.com/vsc/main.js"></script>
+    <script type="text/javascript">
+      const hookFileAPIs = (Module) => {
+        window.openFile = function(files) {
+          console.log("openFile...");
+          if (files.length > 0) {
+            var file = files[0];
+            console.log(file.name + ": size = " + file.size);
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var res = false;
+              if (reader.result)
+              {
+                var data = new Uint8Array(reader.result);
+                res = Module.ccall("load_file_from_mem",
+                  "boolean", // return type
+                  ["string", "array", "number"], // argument types
+                  [file.name, data, data.length]);
+              }
+              if (!res)
+              {
+                alert("Failed to load file:", file.name);
+              }
+            };
+            reader.readAsArrayBuffer(file);
+          }
+        }
+        window.openImage = function(files) {
+          console.log("openImage...");
+          if (files.length > 0) {
+            var file = files[0];
+            console.log(file.name + ": size = " + file.size);
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var res = false;
+              if (reader.result)
+              {
+                var data = new Uint8Array(reader.result);
+                var buf = Module["_malloc"](data.length);
+                Module.writeArrayToMemory(data, buf);
+
+                var stack = Module.stackSave();
+                var strlen = (file.name.length << 2) + 1;
+                var ret = Module.stackAlloc(strlen);
+                Module.stringToUTF8(file.name, ret, strlen);
+                res = Boolean(Module["_load_image_from_mem"](ret, buf, data.length));
+
+                Module.stackRestore(stack);
+              }
+              if (!res)
+              {
+                alert("Failed to load image:", file.name);
+              }
+            };
+            reader.readAsArrayBuffer(file);
+          }
+        }
+        window.openFont = function(files) {
+          console.log("openFont...");
+          if (files.length > 0) {
+            var file = files[0];
+            console.log(file.name + ": size = " + file.size);
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var res = false;
+              if (reader.result)
+              {
+                var data = new Uint8Array(reader.result);
+                var buf = Module["_malloc"](data.length);
+                Module.writeArrayToMemory(data, buf);
+                res = Boolean(Module["_load_font_from_mem"](buf, data.length));
+              }
+              if (!res)
+              {
+                alert("Failed to load font:", file.name);
+              }
+            };
+            reader.readAsArrayBuffer(file);
+          }
+        }
+      };
+      createModule({
+        locateFile: (path) => {
+          return 'https://verygoodgraphics.com/vsc/' + path;
+        },
+        canvas: (function() {
+          var canvas = document.getElementById('canvas');
+          return canvas;
+        })(),
+      }).then((Module) => {
+          hookFileAPIs(Module);
+
+          // load user
+          const userStr = window.localStorage.getItem('vgg-user-data');
+          if (userStr) {
+            try {
+              const userData = JSON.parse(decodeURIComponent(atob(userStr)));
+              if (userData && userData.user) {
+                Module.ccall('set_user_nickname', 'void', ['string'], [userData.user.nickname || 'unknown']);
+              } else {
+                throw new Error('invalid data!');
+              }
+            } catch (err) {
+              alert(`Failed to load user: ${err.message}`);
+              return;
+            }
+          }
+
+          // load work
+          const urlParams = new URLSearchParams(window.location.search);
+          const id = urlParams.get('id');
+          if (!id) {
+            // just return and do nothing
+            return;
+          }
+          const workStr = window.localStorage.getItem('vgg-work-data:'+id);
+          if (!workStr) {
+            alert('Could not find work data!');
+            return;
+          }
+          try {
+            const workData = JSON.parse(decodeURIComponent(atob(workStr)));
+            if (workData) {
+              const mode = workData.mode;
+              const workName = workData.name;
+              const workUrl = workData.url;
+
+              fetch(workUrl).then((res) => {
+                if (res.ok) {
+                  return res.arrayBuffer();
+                }
+                throw new Error(res.statusText);
+              }).then((buf) => {
+                const data = new Uint8Array(buf);
+                if (!Module.ccall('load_file_from_mem',
+                  'boolean', // return type
+                  ['string', 'array', 'number'], // argument types
+                  [workName, data, data.length])) {
+                  throw new Error('load failed!');
+                }
+                if (mode === 'run') {
+                  Module.ccall('start_run', 'void', [], []);
+                }
+              }).catch((err) => {
+                alert(`Failed to load work: ${err.message}`);
+              });
+            } else {
+              throw new Error('invalid data!');
+            }
+          } catch (err) {
+            alert(`Failed to load work: ${err.message}`);
+          }
+      });
+      window.onbeforeunload = function(e) {
+        e = e || window.event;
+        e.preventDefault();
+        e.returnValue = "";
+      };
+      if (!(/chrome/i.test(navigator.userAgent))) {
+        alert("Chrome is recommended for best user experience.");
+      }
+    </script>
+  </body>
+</html>
