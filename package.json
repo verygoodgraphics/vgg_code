@@ -2,6 +2,10 @@
   "name": "vgg",
 	"displayName": "VGG",
 	"description": "Visual UI designer",
+	"publisher": "verygoodgraphics",
+	"repository": {
+		"url": "https://github.com/verygoodgraphics/vgg_code"
+	},
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.61.0"
