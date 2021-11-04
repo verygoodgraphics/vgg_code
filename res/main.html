@@ -24,7 +24,7 @@
     <input type="file" id="fileInput" accept=".vgg,.sketch" style="display:none" onchange="openFile(this.files)" />
     <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="openImage(this.files)" />
     <input type="file" id="fontInput" accept=".ttf,.ttc,.otf" style="display:none" onchange="openFont(this.files)" />
-    <script type="text/javascript" src="https://verygoodgraphics.com/vsc/main.js"></script>
+    <script type="text/javascript" src="https://verygoodgraphics.com/editor/main.js"></script>
     <script type="text/javascript">
       const hookFileAPIs = (Module) => {
         window.openFile = function(files) {
@@ -110,7 +110,7 @@
       };
       createModule({
         locateFile: (path) => {
-          return 'https://verygoodgraphics.com/vsc/' + path;
+          return 'https://verygoodgraphics.com/editor/' + path;
         },
         canvas: (function() {
           var canvas = document.getElementById('canvas');
