@@ -150,7 +150,6 @@
           try {
             const workData = JSON.parse(decodeURIComponent(atob(workStr)));
             if (workData) {
-              const mode = workData.mode;
               const workName = workData.name;
               const workUrl = workData.url;
 
@@ -166,9 +165,6 @@
                   ['string', 'array', 'number'], // argument types
                   [workName, data, data.length])) {
                   throw new Error('load failed!');
-                }
-                if (mode === 'run') {
-                  Module.ccall('start_run', 'void', [], []);
                 }
               }).catch((err) => {
                 alert(`Failed to load work: ${err.message}`);
