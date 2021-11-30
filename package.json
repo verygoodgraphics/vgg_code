@@ -1,7 +1,7 @@
 {
-  "name": "vgg",
+	"name": "vgg",
 	"displayName": "VGG",
-	"description": "Visual UI designer",
+	"description": "VGG Plugin for design-code integration",
 	"publisher": "verygoodgraphics",
 	"repository": {
 		"url": "https://github.com/verygoodgraphics/vgg_code"
