@@ -31,6 +31,17 @@ export function activate(context: vscode.ExtensionContext) {
     currPanel.webview.html = template({
       host: frontendHost,
     });
+    currPanel.webview.onDidReceiveMessage(
+      msg => {
+        switch(msg.command) {
+          case 'openExternal':
+            vscode.env.openExternal(vscode.Uri.parse(msg.url));
+            return;
+        }
+      },
+      undefined,
+      context.subscriptions,
+    );
     currPanel.onDidDispose(
       () => {
         currPanel = undefined;

@@ -93,7 +93,8 @@ export const template = (options: { host: string}) => {
           return canvas;
         })(),
       }).then((Module) => {
-          hookFileAPIs(Module);
+        window.Module = Module;
+        hookFileAPIs(Module);
       });
     </script>
   </body>
