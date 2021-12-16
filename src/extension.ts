@@ -1,11 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { template } from './res/main.html';
+import { template } from "./res/main.html";
 
-const isDev = true; // TODO find out how to change it automatically since NODE_ENV won't work for tsc
-const frontendHost = isDev ? 'http://localhost:8000' : 'https://verygoographics.com';
-const backendHost = isDev ? 'http://localhost:3000' : 'https://verygoodgraphics.com';
+let host = "https://verygoodgraphics.com";
 
 export function activate(context: vscode.ExtensionContext) {
   let currPanel: vscode.WebviewPanel | undefined = undefined;
@@ -28,13 +26,11 @@ export function activate(context: vscode.ExtensionContext) {
         retainContextWhenHidden: true,
       }
     );
-    currPanel.webview.html = template({
-      host: frontendHost,
-    });
+    currPanel.webview.html = template({ host });
     currPanel.webview.onDidReceiveMessage(
       msg => {
         switch(msg.command) {
-          case 'openExternal':
+          case "openExternal":
             vscode.env.openExternal(vscode.Uri.parse(msg.url));
             return;
         }

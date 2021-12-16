@@ -86,15 +86,16 @@ export const template = (options: { host: string}) => {
       };
       createModule({
         locateFile: (path) => {
-          return '${host}/cloudeditor/' + path;
+          return "${host}/cloudeditor/" + path;
         },
         canvas: (function() {
-          var canvas = document.getElementById('canvas');
+          var canvas = document.getElementById("canvas");
           return canvas;
         })(),
       }).then((Module) => {
         window.Module = Module;
         hookFileAPIs(Module);
+        Module.ccall("set_requests_host", "void", ["string"], ["${host}"]);
       });
     </script>
   </body>
