@@ -33,6 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
           case "openExternal":
             vscode.env.openExternal(vscode.Uri.parse(msg.url));
             return;
+          case "showInputBox":
+            vscode.window.showInputBox({
+              value: msg.text,
+            });
+            return;
         }
       },
       undefined,
