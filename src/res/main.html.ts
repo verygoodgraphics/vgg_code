@@ -95,6 +95,14 @@ export const template = (options: { host: string}) => {
       }).then((Module) => {
         window.Module = Module;
         hookFileAPIs(Module);
+        window.addEventListener('message', event => {
+          const msg = event.data;
+          switch (msg.command) {
+            case "saveEntityCode":
+              Module.ccall("save_entity_code", "void", ["number", "string"], [msg.entityID, msg.content]);
+              return;
+          }
+        });
         Module.ccall("set_requests_host", "void", ["string"], ["${host}"]);
       });
     </script>
